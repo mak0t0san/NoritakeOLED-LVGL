@@ -124,7 +124,7 @@ void loop()
   long time = millis() / 100L;
   direction = (time / 100) % 2;
   uint16_t arc_value = (direction ? 100 - (time % 100) : (time % 100));
-  //uint16_t arc_value = (direction * 100) + (time % 100) * (direction - 1);
+  // uint16_t arc_value = (direction * 100) + (time % 100) * (direction - 1);
 
   lv_arc_set_value(ui_Screen1_Arc1, arc_value);
   lv_label_set_text(ui_Screen1_Label1, std::to_string(arc_value).c_str());

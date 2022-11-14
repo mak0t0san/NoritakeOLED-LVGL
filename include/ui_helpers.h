@@ -19,9 +19,6 @@ void _ui_bar_set_property(lv_obj_t * target, int id, int val);
 #define _UI_BASIC_PROPERTY_HEIGHT 3
 void _ui_basic_set_property(lv_obj_t * target, int id, int val);
 
-#define _UI_DROPDOWN_PROPERTY_SELECTED 0
-void _ui_dropdown_set_property(lv_obj_t * target, int id, int val);
-
 #define _UI_IMAGE_PROPERTY_IMAGE 0
 void _ui_image_set_property(lv_obj_t * target, int id, uint8_t * val);
 

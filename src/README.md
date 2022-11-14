@@ -1,9 +1,12 @@
-This is a sample project that shows how you can use the LVGL library with a Noritake OLED display.
+# Files
 
-In particular, I am using a GE256x64B display
-
-Using LVGL makes it easy to create graphical interfaces and you're no longer constrained by the limitations of the
-Noritake OLED display, such as positioning an image at a coordinate that's a multiple of 8, or font limitations. 
-
-LVGL is smart to only re-render parts of the display that are changing which means you don't have to redraw the entire screen for a refresh.
-
+- main.cpp
+    - The sample program
+- Noritake_VFD_GE7000.cpp
+    - Even though the filename says "VFD", this still works for the OLED screen. Copied from Noritake's library
+- ui_font_sacramento36.c
+    - Copied from Google Fonts, as an example of using custom fonts
+- ui_helpders.c
+    - Auto generated file from SquareLine Studio
+- ui.c
+    - Auto generated file from SquareLine Studio
