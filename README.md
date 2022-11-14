@@ -7,3 +7,4 @@ Noritake OLED display, such as positioning an image at a coordinate that's a mul
 
 LVGL is smart to only re-render parts of the display that are changing which means you don't have to redraw the entire screen for a refresh.
 
+The Noritake OLED runs on 3.3V.  I have this connected to an ESP32 development board (Wemos D1 R32) which uses 3.3V outputs, but also using the Arduino framework.  I have not tested this out on an 8-bit ATMEL based Arduino chip which runs on 5V and wouldn't recomment it either.
