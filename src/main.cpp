@@ -16,11 +16,12 @@ static const uint16_t screen_height = 64;
 // Dividing by 4 will mean that we'll have a buffer big enough to draw 1/4th of the screen a time
 // Or in another words, we'll need to send data to the screen 4 times to make a full image
 #define DISP_BUF_SIZE screen_width *screen_height / 4
+
 static lv_disp_draw_buf_t draw_buf;
 static lv_color_t buf[DISP_BUF_SIZE];
 
 /**
- * @brief THis function is used by LVGL to take the rendered image and then send the data to the screen
+ * @brief THis function is used by LVGL to take the rendered image and then send the data to the screen.
  *
  * @param disp
  * @param area
@@ -115,15 +116,20 @@ void setup()
   lv_disp_set_theme(disp, theme_mono);
   ui_init();
 }
+bool direction = false;
 
 void loop()
 {
   // Generate some test data that changes the value on the screen
   long time = millis() / 100L;
-  uint16_t arc_value = time % 100;
+  direction = (time / 100) % 2;
+  uint16_t arc_value = (direction ? 100 - (time % 100) : (time % 100));
+  //uint16_t arc_value = (direction * 100) + (time % 100) * (direction - 1);
+
   lv_arc_set_value(ui_Screen1_Arc1, arc_value);
   lv_label_set_text(ui_Screen1_Label1, std::to_string(arc_value).c_str());
 
   lv_task_handler(); // Needs to be called periodically, about every 5ms according ot the docs
+  vfd.GE7000_setScreenBrightness(arc_value);
   delay(5);
 }
