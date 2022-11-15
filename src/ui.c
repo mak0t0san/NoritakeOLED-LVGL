@@ -41,7 +41,7 @@ void ui_Screen1_screen_init(void)
     ui_Screen1_Panel1 = lv_obj_create(ui_Screen1);
     lv_obj_set_width(ui_Screen1_Panel1, 100);
     lv_obj_set_height(ui_Screen1_Panel1, 29);
-    lv_obj_set_x(ui_Screen1_Panel1, 2);
+    lv_obj_set_x(ui_Screen1_Panel1, 0);
     lv_obj_set_y(ui_Screen1_Panel1, 5);
     lv_obj_clear_flag(ui_Screen1_Panel1, LV_OBJ_FLAG_SCROLLABLE); /// Flags
     lv_obj_set_style_bg_color(ui_Screen1_Panel1, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -108,7 +108,7 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_style_pad_top(ui_Screen1_Label3, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_pad_bottom(ui_Screen1_Label3, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-       ui_Screen1_Panel2 = lv_obj_create(ui_Screen1);
+    ui_Screen1_Panel2 = lv_obj_create(ui_Screen1);
     lv_obj_set_width(ui_Screen1_Panel2, 183);
     lv_obj_set_height(ui_Screen1_Panel2, 28);
     lv_obj_set_align(ui_Screen1_Panel2, LV_ALIGN_BOTTOM_LEFT);

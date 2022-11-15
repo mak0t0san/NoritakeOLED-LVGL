@@ -15,7 +15,7 @@ static const uint16_t screen_height = 64;
 // In this example, we take the screen width and multiply by the height, then divide by 4
 // Dividing by 4 will mean that we'll have a buffer big enough to draw 1/4th of the screen a time
 // Or in another words, we'll need to send data to the screen 4 times to make a full image
-#define DISP_BUF_SIZE screen_width *screen_height / 4
+#define DISP_BUF_SIZE screen_width *screen_height / 8
 
 static lv_disp_draw_buf_t draw_buf;
 static lv_color_t buf[DISP_BUF_SIZE];
@@ -92,6 +92,40 @@ void my_rounder(lv_disp_drv_t *disp_drv, lv_area_t *area)
   // Bitwise OR the value with 0000 0111
   area->y2 |= (0x7);
 }
+void vLvglTask(void *pvParameters)
+{
+  while (1)
+  {
+    lv_task_handler(); // Needs to be called periodically, about every 5ms according ot the docs
+    vTaskDelay(pdMS_TO_TICKS(5));
+  }
+}
+
+void vUpdateUiTask(void *pvParameters)
+{
+  long counter = 0;
+
+  while (1)
+  {
+    // Generate some test data that changes the value on the screen
+    const long time = millis() / 100L;
+    const bool direction = (time / 100) % 2;
+    const uint16_t arc_value = (direction ? 100 - (time % 100) : (time % 100));
+
+    lv_arc_set_value(ui_Screen1_Arc1, arc_value);
+    lv_label_set_text(ui_Screen1_Label1, std::to_string(arc_value).c_str());
+    // oled.GE7000_setScreenBrightness(arc_value);
+
+    counter++;
+    for (int i = 0; i < 10; i++)
+    {
+      chart_series->y_points[i] = (lv_coord_t)(50 + sin(counter + i) * 50);
+    }
+
+    lv_chart_refresh(ui_Screen1_Chart1);
+    vTaskDelay(pdMS_TO_TICKS(50));
+  } // while
+}
 
 void setup()
 {
@@ -121,38 +155,13 @@ void setup()
   lv_theme_t *theme_mono = lv_theme_mono_init(disp, true, LV_FONT_DEFAULT);
   lv_disp_set_theme(disp, theme_mono);
   ui_init();
+
+  TaskHandle_t xUpdateUiHandle = NULL;
+  xTaskCreate(vUpdateUiTask, "UPDATE UI", 1024 * 8, NULL, tskIDLE_PRIORITY, &xUpdateUiHandle);
+  TaskHandle_t xLvglHandle = NULL;
+  xTaskCreate(vLvglTask, "LVGL", 1024 * 8, NULL, configMAX_PRIORITIES - 1, &xLvglHandle);
 }
 
-bool chart_updated = false;
 void loop()
 {
-  // Generate some test data that changes the value on the screen
-  const long time = millis() / 100L;
-  const bool direction = (time / 100) % 2;
-  const uint16_t arc_value = (direction ? 100 - (time % 100) : (time % 100));
-
-  lv_arc_set_value(ui_Screen1_Arc1, arc_value);
-  lv_label_set_text(ui_Screen1_Label1, std::to_string(arc_value).c_str());
-
-  if (!(time % 4))
-  {
-    if (!chart_updated)
-    {
-      for (int i = 0; i < 10; i++)
-      {
-        chart_series->y_points[i] = (lv_coord_t)(50 + sin(time + i) * 50);
-      }
-
-      lv_chart_refresh(ui_Screen1_Chart1);
-      chart_updated = true;
-    }
-  }
-  else
-  {
-    chart_updated = false;
-  }
-
-  lv_task_handler(); // Needs to be called periodically, about every 5ms according ot the docs
-  oled.GE7000_setScreenBrightness(arc_value);
-  delay(5);
 }
