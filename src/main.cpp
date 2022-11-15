@@ -123,16 +123,34 @@ void setup()
   ui_init();
 }
 
+bool chart_updated = false;
 void loop()
 {
   // Generate some test data that changes the value on the screen
   const long time = millis() / 100L;
   const bool direction = (time / 100) % 2;
   const uint16_t arc_value = (direction ? 100 - (time % 100) : (time % 100));
-  // uint16_t arc_value = (direction * 100) + (time % 100) * (direction - 1);
 
   lv_arc_set_value(ui_Screen1_Arc1, arc_value);
   lv_label_set_text(ui_Screen1_Label1, std::to_string(arc_value).c_str());
+
+  if (!(time % 4))
+  {
+    if (!chart_updated)
+    {
+      for (int i = 0; i < 10; i++)
+      {
+        chart_series->y_points[i] = (lv_coord_t)(50 + sin(time + i) * 50);
+      }
+
+      lv_chart_refresh(ui_Screen1_Chart1);
+      chart_updated = true;
+    }
+  }
+  else
+  {
+    chart_updated = false;
+  }
 
   lv_task_handler(); // Needs to be called periodically, about every 5ms according ot the docs
   oled.GE7000_setScreenBrightness(arc_value);
