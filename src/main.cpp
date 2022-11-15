@@ -5,8 +5,8 @@
 #include "lvgl.h"
 #include "ui.h"
 
-GE7000_Serial_SPI interface(13, 12, 14, 27, 25); // SIN,BUSY,SCK,RESET,CS
-static Noritake_VFD_GE7000 vfd;
+static GE7000_Serial_SPI interface(13, 12, 14, 27, 25); // SIN,BUSY,SCK,RESET,CS
+static Noritake_VFD_GE7000 oled;
 
 static const uint16_t screen_width = 256;
 static const uint16_t screen_height = 64;
@@ -50,16 +50,16 @@ void my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color
     {
       // `>> 3` is the same as dividing by 2^3 (8) and truncating but just a bit more performant
       idx = (y >> 3) + ((h >> 3) * x);
-      lv_color_t color = color_p[x + (y * w)];
+      const lv_color_t color = color_p[x + (y * w)];
 
       if (lv_color_brightness(color) > 128)
       {
-        // Flip the bit to 1
+        // Set the bit to 1
         newArray[idx] |= (1 << (7 - y % 8));
       }
       else
       {
-        // Flip the appropriate bit to 0
+        // Set the appropriate bit to 0
         newArray[idx] &= ~(1 << (7 - y % 8));
       }
     }
@@ -67,7 +67,7 @@ void my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color
 
   // drawImage is expecting a byte array where there first byte contains data for the first 8 vertical pixels.
   // The data then goes from top to bottom, then left to right
-  vfd.GE7000_drawImage(area->x1, area->y1, w, h, newArray);
+  oled.GE7000_drawImage(area->x1, area->y1, w, h, newArray);
 
   // Let lvgl know that flushing is finished
   lv_disp_flush_ready(disp);
@@ -81,22 +81,28 @@ void my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color
  */
 void my_rounder(lv_disp_drv_t *disp_drv, lv_area_t *area)
 {
-  // Round down to the nearest multiple of 8, then -1
+  // Round down to the nearest multiple of 8
   // For example, 7 becomes 0,  8 becomes 8, 9 becomes 8, 17 becomes 16
-  area->y1 = area->y1 & ~(0x7);
-  area->y2 = area->y2 | (0x7);
+  // ~(0x7) (NOT(7)) 7 in binary is 0000 0111, flipping the bits of that becomes 1111 1000
+  // A bitwise AND will set the first three bits to 0 preventing it from not being a multiple of 8
+  area->y1 &= ~(0x7);
+
+  // Round up to the nearest multiple of 8, then -1
+  // For example, 4 becomes 7,  8 becomes 15, 9 becomes 15, 17 becomes 23
+  // Bitwise OR the value with 0000 0111
+  area->y2 |= (0x7);
 }
 
 void setup()
 {
   lv_init(); // Initialize LVGL library
 
-  vfd.begin(screen_width, screen_height);
-  vfd.interface(interface); // select which interface to use
-  vfd.isModelClass(7933);
-  vfd.isGeneration('B'); // Uncomment this for B generation
-  vfd.GE7000_reset();    // reset module
-  vfd.GE7000_init();     // initialize module
+  oled.begin(screen_width, screen_height);
+  oled.interface(interface); // select which interface to use
+  oled.isModelClass(7933);
+  oled.isGeneration('B'); // Uncomment this for B generation
+  oled.GE7000_reset();    // reset module
+  oled.GE7000_init();     // initialize module
 
   lv_disp_draw_buf_init(&draw_buf, buf, NULL, DISP_BUF_SIZE);
 
@@ -116,20 +122,19 @@ void setup()
   lv_disp_set_theme(disp, theme_mono);
   ui_init();
 }
-bool direction = false;
 
 void loop()
 {
   // Generate some test data that changes the value on the screen
-  long time = millis() / 100L;
-  direction = (time / 100) % 2;
-  uint16_t arc_value = (direction ? 100 - (time % 100) : (time % 100));
+  const long time = millis() / 100L;
+  const bool direction = (time / 100) % 2;
+  const uint16_t arc_value = (direction ? 100 - (time % 100) : (time % 100));
   // uint16_t arc_value = (direction * 100) + (time % 100) * (direction - 1);
 
   lv_arc_set_value(ui_Screen1_Arc1, arc_value);
   lv_label_set_text(ui_Screen1_Label1, std::to_string(arc_value).c_str());
 
   lv_task_handler(); // Needs to be called periodically, about every 5ms according ot the docs
-  vfd.GE7000_setScreenBrightness(arc_value);
+  oled.GE7000_setScreenBrightness(arc_value);
   delay(5);
 }
